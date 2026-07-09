@@ -7,10 +7,22 @@
 (deftest combines-factors
   (let [req (m/request "r1" "did:web:example.com:alice" {:required-level :multi-factor})
         fs [(m/factor "f1" :totp true {})
-            (m/factor "f2" :touchid true {})]
+            (m/factor "f2" :password true {})]
         out (c/decide req fs)]
     (is (= :authenticated (:authn.decision/decision out)))
     (is (= :multi-factor (:authn.decision/level out)))))
+
+(deftest biometric-factors-are-phishing-resistant
+  ;; faceid/touchid are platform-biometric authenticators, just like
+  ;; webauthn/passkey -- a single ok biometric factor must reach
+  ;; :phishing-resistant on its own, not be downgraded to :single-factor.
+  (doseq [factor-type [:faceid :touchid :webauthn :passkey]]
+    (is (= :phishing-resistant (c/achieved-level [(m/factor "f1" factor-type true {})]))
+        (str factor-type " alone should be phishing-resistant")))
+  (let [req (m/request "r1" "did:web:example.com:alice" {:required-level :phishing-resistant})
+        out (c/decide req [(m/factor "f1" :touchid true {})])]
+    (is (= :authenticated (:authn.decision/decision out)))
+    (is (= :phishing-resistant (:authn.decision/level out)))))
 
 (deftest verifies-factor-requests-through-host-verifiers
   (let [req (m/request "r2" "did:web:example.com:alice" {:required-level :multi-factor})
