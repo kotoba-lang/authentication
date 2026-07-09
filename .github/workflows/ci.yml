@@ -17,7 +17,27 @@ jobs:
       matrix:
         java: ['17', '21']
     steps:
+      # deps.edn resolves 7 siblings via :local/root ("../faceid" etc.,
+      # relative to this repo's own checkout) -- lay them out as direct
+      # siblings under $GITHUB_WORKSPACE to match.
       - uses: actions/checkout@v4
+        with: { path: authentication }
+      - uses: actions/checkout@v4
+        with: { repository: kotoba-lang/faceid, path: faceid }
+      - uses: actions/checkout@v4
+        with: { repository: kotoba-lang/touchid, path: touchid }
+      - uses: actions/checkout@v4
+        with: { repository: kotoba-lang/webauthn, path: webauthn }
+      - uses: actions/checkout@v4
+        with: { repository: kotoba-lang/onetime, path: onetime }
+      - uses: actions/checkout@v4
+        with: { repository: kotoba-lang/oauth, path: oauth }
+      - uses: actions/checkout@v4
+        with: { repository: kotoba-lang/oidc, path: oidc }
+      - uses: actions/checkout@v4
+        with: { repository: kotoba-lang/saml, path: saml }
+      - uses: actions/checkout@v4
+        with: { repository: kotoba-lang/identity, path: identity }
 
       - name: Setup JDK ${{ matrix.java }}
         uses: actions/setup-java@v4
@@ -37,9 +57,10 @@ jobs:
           path: |
             ~/.m2
             ~/.gitlibs
-          key: ${{ runner.os }}-jdk${{ matrix.java }}-clj-${{ hashFiles('deps.edn') }}
+          key: ${{ runner.os }}-jdk${{ matrix.java }}-clj-${{ hashFiles('authentication/deps.edn') }}
           restore-keys: |
             ${{ runner.os }}-jdk${{ matrix.java }}-clj-
 
       - name: Run tests
+        working-directory: authentication
         run: clojure -M:test
