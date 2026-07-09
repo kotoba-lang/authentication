@@ -7,11 +7,17 @@
     (not (contains? m/factor-types (:authn.factor/type f)))
     (conj {:authn.problem/code :unknown-factor})))
 
+(def phishing-resistant-types
+  "Factor types that are inherently phishing-resistant (public-key /
+  platform-biometric ceremonies that can't be replayed against a spoofed
+  relying party). Mirrors mfa.core/phishing-resistant-factors."
+  #{:webauthn :passkey :faceid :touchid})
+
 (defn achieved-level [factors]
   (let [ok (filter :authn.factor/ok? factors)
         types (set (map :authn.factor/type ok))]
     (cond
-      (some types [:webauthn :passkey]) :phishing-resistant
+      (some types phishing-resistant-types) :phishing-resistant
       (>= (count types) 2) :multi-factor
       (= 1 (count types)) :single-factor
       :else :none)))
