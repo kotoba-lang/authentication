@@ -8,7 +8,9 @@
         kotoba-lang/saml {:local/root "../saml"}
         ;; real did:key CACAO verification (ADR-2607050400) -- cacao is a real,
         ;; independently-pushed repo (unlike the :local/root siblings above).
-        io.github.kotoba-lang/cacao {:git/sha "c88333c72690bc1463f077125b37c7eb8f11eb62"}}
+        ;; Pinned past cacao.core/verify's :now expiry-check fix (needed for
+        ;; production-cacao-verifier's clock injection below to have any effect).
+        io.github.kotoba-lang/cacao {:git/sha "63e9db1460e1b6fdd504fef0204c8c1be7d75045"}}
  :aliases {:test {:extra-paths ["test"]
                   :extra-deps {io.github.cognitect-labs/test-runner
                                {:git/tag "v0.5.1" :git/sha "dfb30dd"}}

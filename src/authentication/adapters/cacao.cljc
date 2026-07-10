@@ -1,7 +1,13 @@
 (ns authentication.adapters.cacao
+  ;; clojure.string is used ONLY inside real-now's #?(:cljs ...) branch below
+  ;; -- under a :clj reading that branch vanishes, so clj-kondo's :clj-side
+  ;; pass would otherwise flag it as unused. ^:clj-kondo/ignore is the
+  ;; correct scoped escape hatch for a require that's genuinely host-
+  ;; specific by design (same idiom as shoko.archiveport).
   (:require [authentication.model :as m]
             [authentication.ports :as p]
-            [cacao.core :as cacao]))
+            [cacao.core :as cacao]
+            ^:clj-kondo/ignore [clojure.string :as str]))
 
 (defprotocol ICacaoVerifier
   (verify-cacao! [verifier payload opts]))
@@ -35,13 +41,26 @@
 ;; verifier port because their crypto lives on a device/OS the code can't
 ;; reach directly).
 
-(defn- single-cacao-result [cacao-b64]
-  (let [{:keys [valid? iss payload]} (cacao/verify cacao-b64)]
+(defn real-now
+  "The current instant as a whole-second, Z-suffixed ISO-8601 UTC string
+   (e.g. \"2026-07-10T03:24:26Z\") -- the same shape cacao mint/verify
+   fixtures use throughout this org, so plain string `compare` against a
+   CACAO's :iat/:exp (also caller-supplied in that shape) sorts correctly.
+   java.time.Instant's default .toString() has VARIABLE fractional-second
+   precision (0, 3, 6, or 9 digits depending on the instant), which would
+   compare incorrectly against a whole-second mint-time value in some
+   cases -- truncating to SECONDS first avoids that entirely."
+  []
+  #?(:clj (str (.truncatedTo (java.time.Instant/now) java.time.temporal.ChronoUnit/SECONDS))
+     :cljs (str/replace (.toISOString (js/Date.)) #"\.\d+Z$" "Z")))
+
+(defn- single-cacao-result [cacao-b64 now]
+  (let [{:keys [valid? iss payload]} (cacao/verify cacao-b64 {:now now})]
     {:ok? valid? :subject iss :evidence-ref iss
      :assurance (when valid? :single-factor) :at (:exp payload)}))
 
-(defn- chain-cacao-result [chain]
-  (let [{:chain/keys [valid? root-iss holder expires]} (cacao/verify-chain chain)]
+(defn- chain-cacao-result [chain now]
+  (let [{:chain/keys [valid? root-iss holder expires]} (cacao/verify-chain chain {:now now})]
     {:ok? valid? :subject holder :evidence-ref root-iss
      :assurance (when valid? :single-factor) :at expires}))
 
@@ -52,11 +71,24 @@
    `cacao.core/verify-chain`). Never `:phishing-resistant` on its own (see
    ADR-2607050400: SIWE/EIP-4361 signing has no browser/OS-enforced origin
    binding the way WebAuthn does, so a CACAO factor's assurance tops out at
-   `:single-factor` here regardless of the signature's own validity)."
-  []
-  (reify ICacaoVerifier
-    (verify-cacao! [_ payload _opts]
-      (let [response (:response payload)]
-        (if-let [chain (:cacao/chain response)]
-          (chain-cacao-result chain)
-          (single-cacao-result (:cacao/cacao-b64 response)))))))
+   `:single-factor` here regardless of the signature's own validity).
+
+   `now-fn` is a 0-arg fn returning the current instant (real-now's shape);
+   called FRESH on every verify-cacao! call, never baked in at construction
+   time, so a long-lived verifier instance always checks against the actual
+   current moment -- threaded through as cacao.core/verify's/verify-chain's
+   :now option to reject an expired or not-yet-valid CACAO. Confirmed bug
+   this closes: this adapter never checked expiry at all -- a captured
+   CACAO could be replayed indefinitely against the real production auth
+   path, regardless of cacao.core itself supporting an expiry check.
+   Defaults to real-now (the real wall clock); inject a fake now-fn for
+   deterministic tests."
+  ([] (production-cacao-verifier real-now))
+  ([now-fn]
+   (reify ICacaoVerifier
+     (verify-cacao! [_ payload _opts]
+       (let [response (:response payload)
+             now (now-fn)]
+         (if-let [chain (:cacao/chain response)]
+           (chain-cacao-result chain now)
+           (single-cacao-result (:cacao/cacao-b64 response) now)))))))
