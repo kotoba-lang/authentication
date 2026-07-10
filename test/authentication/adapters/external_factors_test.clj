@@ -131,7 +131,7 @@
                  (is (= "kagi://saml/assertion" assertion-ref))
                  (saml-model/assertion-result true {:issuer "https://idp.example"
                                                     :subject "did:web:example.com:alice"
-                                                    :audience "https://sp.example/acs"
+                                                    :audience "https://sp.example"
                                                     :evidence-ref "kagi://saml/evidence"})))
         out (authn-ports/verify-factor! (ext/saml-verifier port relay-store {})
                                         req
