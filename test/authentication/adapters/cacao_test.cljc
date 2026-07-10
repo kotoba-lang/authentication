@@ -54,3 +54,44 @@
       (is (:authn.factor/ok? result))
       (is (= "did:web:kotobase.net" (:authn.factor/subject result)))
       (is (= (:iss root) (:authn.factor/evidence-ref result))))))
+
+;; ── production verifier checks expiry (CONFIRMED BUG regression) ───────────
+;; Previously production-cacao-verifier never passed :now to cacao.core/
+;; verify or verify-chain, so a captured CACAO could be replayed indefinitely
+;; against the real production auth path -- even after cacao.core itself
+;; gained an expiry-check capability, this adapter never used it.
+
+(deftest production-verifier-rejects-an-expired-cacao
+  (let [{:keys [cacao-b64]} (real-cacao/mint {:seed seed :aud "did:web:kotobase.net" :nonce "n1"
+                                              :iat "2020-01-01T00:00:00Z" :exp "2020-01-02T00:00:00Z"
+                                              :resources ["kotoba://can/kotobase:pin"]})
+        verifier (cacao/cacao-factor-verifier (cacao/production-cacao-verifier))
+        fr (m/factor-request "fr-1" :cacao {})]
+    (is (not (:authn.factor/ok? (c/verify-factor {:cacao verifier} fr {:cacao/cacao-b64 cacao-b64}))))))
+
+(deftest production-verifier-uses-an-injected-clock-not-the-real-one
+  (testing "a fake now-fn drives expiry, not the real wall clock -- deterministic"
+    (let [{:keys [cacao-b64]} (mint-test-cacao) ; iat 2026-07-04, exp 2026-08-04
+          within-window (cacao/cacao-factor-verifier
+                         (cacao/production-cacao-verifier (fn [] "2026-07-15T00:00:00Z")))
+          past-exp (cacao/cacao-factor-verifier
+                    (cacao/production-cacao-verifier (fn [] "2026-09-01T00:00:00Z")))
+          before-iat (cacao/cacao-factor-verifier
+                      (cacao/production-cacao-verifier (fn [] "2026-06-01T00:00:00Z")))
+          fr (m/factor-request "fr-1" :cacao {})]
+      (is (:authn.factor/ok? (c/verify-factor {:cacao within-window} fr {:cacao/cacao-b64 cacao-b64})))
+      (is (not (:authn.factor/ok? (c/verify-factor {:cacao past-exp} fr {:cacao/cacao-b64 cacao-b64}))))
+      (is (not (:authn.factor/ok? (c/verify-factor {:cacao before-iat} fr {:cacao/cacao-b64 cacao-b64})))))))
+
+(deftest production-verifier-rejects-an-expired-chain
+  (let [{:keys [cacao-b64]} (real-cacao/mint {:seed seed :aud "did:web:kotobase.net" :nonce "n1"
+                                              :iat "2020-01-01T00:00:00Z" :exp "2020-01-02T00:00:00Z"
+                                              :resources ["kotoba://can/kotobase:pin"]})
+        verifier (cacao/cacao-factor-verifier (cacao/production-cacao-verifier))
+        fr (m/factor-request "fr-1" :cacao {})]
+    (is (not (:authn.factor/ok? (c/verify-factor {:cacao verifier} fr {:cacao/chain [cacao-b64]}))))))
+
+(deftest real-now-produces-a-plausible-whole-second-iso8601-string
+  (testing "the default clock: no fake now-fn, just a sanity check the real wall
+            clock path doesn't throw and returns a comparable ISO-8601 shape"
+    (is (re-matches #"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z" (cacao/real-now)))))
