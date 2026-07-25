@@ -1,3 +1,5 @@
+/Users/junkawasaki/.gitlibs/libs/io.github.kotoba-lang/org-ietf-ed25519/e96c4d0390b3f7d7c29f981e17ab666e16dc0fe0/deps.edn
+/Users/junkawasaki/.gitlibs/libs/io.github.kotoba-lang/org-ietf-cbor/de18ad29102f9df150e214d756de4719c3c00d7a/deps.edn
 /Users/junkawasaki/github/com-junkawasaki/orgs/kotoba-lang/identity/deps.edn
 /Users/junkawasaki/.gitlibs/libs/io.github.cognitect-labs/test-runner/dfb30dd6605cb6c0efc275e1df1736f6e90d4d73/deps.edn
 /Users/junkawasaki/github/com-junkawasaki/orgs/kotoba-lang/faceid/deps.edn
@@ -7,3 +9,4 @@
 /Users/junkawasaki/github/com-junkawasaki/orgs/kotoba-lang/onetime/deps.edn
 /Users/junkawasaki/github/com-junkawasaki/orgs/kotoba-lang/oauth/deps.edn
 /Users/junkawasaki/github/com-junkawasaki/orgs/kotoba-lang/saml/deps.edn
+/Users/junkawasaki/.gitlibs/libs/io.github.kotoba-lang/org-chainagnostic-cacao/dac940566e07d8ad67bff0047ada92b45dae24a0/deps.edn
