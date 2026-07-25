@@ -6,11 +6,21 @@
         kotoba-lang/oauth {:local/root "../oauth"}
         kotoba-lang/oidc {:local/root "../oidc"}
         kotoba-lang/saml {:local/root "../saml"}
-        ;; real did:key CACAO verification (ADR-2607050400) -- cacao is a real,
+        ;; real did:key CACAO verification (ADR-2607050400) -- a real,
         ;; independently-pushed repo (unlike the :local/root siblings above).
-        ;; Pinned past cacao.core/verify's :now expiry-check fix (needed for
-        ;; production-cacao-verifier's clock injection below to have any effect).
-        io.github.kotoba-lang/cacao {:git/sha "63e9db1460e1b6fdd504fef0204c8c1be7d75045"}}
+        ;; Renamed cacao -> org-chainagnostic-cacao (ADR-2607061650); the ns
+        ;; names (cacao.core, cacao.edge.*) did not change. :git/url is spelled
+        ;; out rather than derived from the coordinate so resolution does not
+        ;; depend on GitHub's rename redirect still being served.
+        ;;
+        ;; Pinned past BOTH (a) cacao.core/verify's :now expiry-check fix,
+        ;; without which production-cacao-verifier's clock injection has no
+        ;; effect, and (b) cacao.edge.{verify,mint} -- the WebCrypto edge
+        ;; verifier/minter authentication.adapters.cacao-edge needs, which did
+        ;; not exist at the previous pin (63e9db1).
+        io.github.kotoba-lang/org-chainagnostic-cacao
+        {:git/url "https://github.com/kotoba-lang/org-chainagnostic-cacao.git"
+         :git/sha "dac940566e07d8ad67bff0047ada92b45dae24a0"}}
  :aliases {:test {:extra-paths ["test"]
                   :extra-deps {io.github.cognitect-labs/test-runner
                                {:git/tag "v0.5.1" :git/sha "dfb30dd"}}
