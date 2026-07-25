@@ -12,8 +12,16 @@
                          (conj out (.apply js/String.fromCharCode nil
                                           (.subarray bytes offset
                                                      (min (.-length bytes) (+ offset chunk))))))))]
+    ;; The `g` flags are load-bearing. JS `String.replace` with a NON-global
+    ;; regex replaces only the FIRST match, so without them a token keeps every
+    ;; `+` and `/` after the first -- i.e. it is not base64url at all, despite
+    ;; the name and the docstring. Measured: roughly two 32-byte tokens in
+    ;; three came out containing at least one. Found 2026-07-25 when an OAuth
+    ;; `state` came back percent-encoded from a URL because it still held a `+`.
     (-> (js/btoa (.join (clj->js parts) ""))
-        (.replace #"\+" "-") (.replace #"/" "_") (.replace #"=+$" ""))))
+        (.replace (js/RegExp. "\\+" "g") "-")
+        (.replace (js/RegExp. "/" "g") "_")
+        (.replace (js/RegExp. "=+$") ""))))
 
 (defn random-token
   "Cryptographically random base64url token. Defaults to 32 bytes (256 bits)."
