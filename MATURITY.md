@@ -6,7 +6,7 @@ Implemented:
 - Authentication request, factor result, and decision models.
 - Factor type validation.
 - Assurance-level aggregation for single-factor, multi-factor, and phishing-resistant flows.
-- Datom emitters for factor and decision records, with identity carried as a `:db.unique/identity` attribute rather than a per-transaction `:db/id` tempid.
+- Datom emitters for factor and decision records, with identity carried as a `:db.unique/identity` attribute rather than a per-transaction `:db/id` tempid, and absent attributes dropped rather than asserted as nil.
 - One canonical schema (`authentication.schema`) in Datomic installation tx-data, converted for the in-memory store by `langchain.db/schema-from-tx-data`.
 - Host verifier orchestration for factor requests.
 - Factor verifier adapter boundary.
