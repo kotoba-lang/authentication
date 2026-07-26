@@ -8,6 +8,30 @@ top of it (`authentication.identity`, `authentication.identity-service`);
 `docs/PRODUCTION-HARDENING.md` describes the fail-closed contracts a host must
 apply before exposing that service publicly.
 
+## Where decisions are kept
+
+`authentication.schema` declares every attribute once, in Datomic's
+installation tx-data dialect. A real Datomic connection transacts it as-is;
+`langchain.db/schema-from-tx-data` converts it for the in-memory store. Each
+entity carries its identity as a `:db.unique/identity` attribute — a string
+`:db/id` is a tempid scoped to one transaction, so it could never have made
+two transactions about the same decision refer to one entity.
+
+`authentication.adapters.journal-ledger` is the durable `IDecisionLedger`:
+[`langchain.db`](https://github.com/kotoba-lang/langchain) holds the index and
+answers the Datalog, [`journal`](https://github.com/kotoba-lang/journal) holds
+the append-only history, and the connection replays that history on open — so a
+restarted process answers the same queries the previous one did, and the replay
+invariant (one decision per request id) is a query rather than a set maintained
+by hand.
+
+```clojure
+(def ledger (jl/journal-decision-ledger {:path "authn.journal.edn"}))
+(ledger/persist-decision! ledger decision {:request-id "r1"})
+(jl/decision ledger "r1")   ;; the decision, factors nested
+(jl/history io)             ;; what happened, in order
+```
+
 ## Two hosts, two verifier shapes
 
 Factor verification is synchronous where the platform API is
