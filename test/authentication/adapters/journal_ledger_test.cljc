@@ -117,3 +117,10 @@
 (deftest needs-a-sink
   (is (thrown? #?(:clj clojure.lang.ExceptionInfo :cljs cljs.core/ExceptionInfo)
                (jl/journal-decision-ledger {}))))
+
+(deftest absent-attributes-are-not-asserted-as-nil
+  (testing "a real transactor rejects nil; the pull should not show it either"
+    (let [l (jl/journal-decision-ledger {:io (journal.fs/memory-io)})]
+      (ledger/persist-factor! l (m/factor "bare" :touchid true {}))
+      (is (= {:authn.factor/id "bare" :authn.factor/type :touchid :authn.factor/ok? true}
+             (dissoc (first (jl/factors l)) :db/id))))))
