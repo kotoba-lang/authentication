@@ -20,7 +20,19 @@
         ;; not exist at the previous pin (63e9db1).
         io.github.kotoba-lang/org-chainagnostic-cacao
         {:git/url "https://github.com/kotoba-lang/org-chainagnostic-cacao.git"
-         :git/sha "dac940566e07d8ad67bff0047ada92b45dae24a0"}}
+         :git/sha "dac940566e07d8ad67bff0047ada92b45dae24a0"}
+        ;; The decision ledger: langchain.db is the index and the Datalog
+        ;; engine, journal is the append-only history, langchain.persist is
+        ;; the seam. Both are real, independently-pushed repos, so they are
+        ;; git deps rather than :local/root siblings -- CI needs no extra
+        ;; checkout step for them.
+        ;;
+        ;; langchain is pinned at schema-from-tx-data, which authentication.schema
+        ;; needs to express one canonical schema in both dialects.
+        io.github.kotoba-lang/langchain
+        {:git/sha "8789fe4cc387f294b6936f2171e419a252fd9ea8"}
+        io.github.kotoba-lang/journal
+        {:git/sha "4ee86a07c162cf46707232fa70a720f989989486"}}
  :aliases {:test {:extra-paths ["test"]
                   :extra-deps {io.github.cognitect-labs/test-runner
                                {:git/tag "v0.5.1" :git/sha "dfb30dd"}}

@@ -3,33 +3,14 @@
   data-oriented: a host supplies `q` and `transact!`, keeping Datomic client and
   peer APIs out of portable CLJS bundles."
   (:require [authentication.identity :as identity]
-            [authentication.identity-ports :as ports]))
+            [authentication.identity-ports :as ports]
+            [authentication.schema :as canonical]))
 
 (def schema
-  [{:db/ident :identity.user/id :db/valueType :db.type/string
-    :db/cardinality :db.cardinality/one :db/unique :db.unique/identity}
-   {:db/ident :identity.user/status :db/valueType :db.type/keyword :db/cardinality :db.cardinality/one}
-   {:db/ident :identity.user/created-at :db/valueType :db.type/long :db/cardinality :db.cardinality/one}
-   {:db/ident :identity/provider :db/valueType :db.type/keyword :db/cardinality :db.cardinality/one}
-   {:db/ident :identity/provider-subject :db/valueType :db.type/string :db/cardinality :db.cardinality/one}
-   {:db/ident :identity/key :db/valueType :db.type/tuple
-    :db/tupleAttrs [:identity/provider :identity/provider-subject]
-    :db/cardinality :db.cardinality/one :db/unique :db.unique/identity}
-   {:db/ident :identity/user :db/valueType :db.type/ref :db/cardinality :db.cardinality/one}
-   {:db/ident :identity/email :db/valueType :db.type/string :db/cardinality :db.cardinality/one
-    :db/index true}
-   {:db/ident :identity/email-verified? :db/valueType :db.type/boolean :db/cardinality :db.cardinality/one}
-   {:db/ident :identity/created-at :db/valueType :db.type/long :db/cardinality :db.cardinality/one}
-   {:db/ident :identity.tenant/id :db/valueType :db.type/string
-    :db/cardinality :db.cardinality/one :db/unique :db.unique/identity}
-   {:db/ident :identity.tenant/did :db/valueType :db.type/string
-    :db/cardinality :db.cardinality/one :db/unique :db.unique/identity}
-   {:db/ident :identity.membership/user :db/valueType :db.type/ref :db/cardinality :db.cardinality/one}
-   {:db/ident :identity.membership/tenant :db/valueType :db.type/ref :db/cardinality :db.cardinality/one}
-   {:db/ident :identity.membership/role :db/valueType :db.type/keyword :db/cardinality :db.cardinality/one}
-   {:db/ident :identity.membership/key :db/valueType :db.type/tuple
-    :db/tupleAttrs [:identity.membership/user :identity.membership/tenant]
-    :db/cardinality :db.cardinality/one :db/unique :db.unique/identity}])
+  "The identity attributes, from the one place they are declared. This
+  namespace used to hold its own copy, which is how it and the in-memory
+  store came to describe the same database in two dialects."
+  canonical/identity)
 
 (def find-user-by-identity-query
   '[:find ?user-id . :in $ ?provider ?subject
