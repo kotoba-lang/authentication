@@ -54,6 +54,30 @@
           :identity/user [:identity.user/id user-id]
           :identity/created-at now)])
 
+(def session-pull
+  [:identity.session/id
+   :identity.session/token-digest
+   :identity.session/application
+   :identity.session/created-at
+   :identity.session/expires-at
+   :identity.session/revoked?
+   :identity.session/revoked-at
+   {:identity.session/user [:identity.user/id :identity.user/status]}
+   {:identity.session/tenant [:identity.tenant/id :identity.tenant/did]}])
+
+(defn prepare-session-tx [record]
+  [(-> record
+       (assoc :db/id (:identity.session/id record))
+       (update :identity.session/user
+               #(if (vector? %) % [:identity.user/id %]))
+       (update :identity.session/tenant
+               #(if (vector? %) % [:identity.tenant/id %])))])
+
+(defn revoke-session-tx [token-digest revoked-at]
+  [{:db/id [:identity.session/token-digest token-digest]
+    :identity.session/revoked? true
+    :identity.session/revoked-at revoked-at}])
+
 (defrecord DatomicIdentityStore [db q transact!]
   ports/IIdentityStore
   (-find-user-by-identity [_ provider subject]
@@ -67,3 +91,14 @@
     (q user-view-query (db) user-id)))
 
 (defn store [options] (map->DatomicIdentityStore options))
+
+(defrecord DatomicSessionStore [db pull transact!]
+  ports/ISessionStore
+  (-create-session! [_ record]
+    (transact! (prepare-session-tx record)))
+  (-find-session-by-digest [_ token-digest]
+    (pull (db) session-pull [:identity.session/token-digest token-digest]))
+  (-revoke-session! [_ token-digest revoked-at]
+    (transact! (revoke-session-tx token-digest revoked-at))))
+
+(defn session-store [options] (map->DatomicSessionStore options))

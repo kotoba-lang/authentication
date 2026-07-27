@@ -61,17 +61,26 @@
         (.then (fn [transaction]
                  (when-not (:identity.oauth/pkce-verifier transaction)
                    (throw (js/Error. "private OAuth transaction missing")))
-                 (service/complete-profile! app {:profile profile})))
+                 (service/complete-profile! app {:profile profile
+                                                 :application "kotobase"})))
         (.then (fn [result]
                  (when-not (= :create-user (:decision result))
                    (throw (js/Error. "account was not created")))
                  (when-not (:token result) (throw (js/Error. "session missing")))
-                 (service/complete-profile! app {:profile profile})))
+                 (service/complete-profile! app {:profile profile
+                                                 :application "kotobase"})))
         (.then (fn [result]
                  (when-not (= :sign-in (:decision result))
                    (throw (js/Error. "existing identity did not sign in")))
-                 (service/revoke-session! app (:token result))))
-        (.then (fn [_] (js/console.log "ok - Identity service OAuth, account, sign-in and session")))
+                 (service/rotate-session! app (:token result) {})))
+        (.then (fn [rotated]
+                 (when-not (:rotated-from-session-id rotated)
+                   (throw (js/Error. "rotation lineage missing")))
+                 (service/resolve-session! app (:token rotated))))
+        (.then (fn [record]
+                 (when-not (= "kotobase" (:identity.session/application record))
+                   (throw (js/Error. "session audience missing")))
+                 (js/console.log "ok - Identity service OAuth, account, sign-in, rotation and session")))
         (.catch fail!))))
 
 (main)

@@ -11,7 +11,10 @@ them.
 - Identity: an email, Google, GitHub, Apple, Microsoft, OIDC, SAML, passkey or
   CACAO credential linked to a user.
 - Session: an opaque browser credential represented server-side only by its
-  digest.
+  digest. Production stores that digest as a Datomic entity so global
+  revocation, tenant membership, history, and audit share one D1-backed source
+  of truth. OAuth state, email challenges, and other one-time records remain
+  ephemeral KV/DO data.
 - Tenant and membership: the authorization and billing boundary, separate from
   the human user.
 - Application: a relying application with an exact redirect-URI allowlist.
@@ -50,8 +53,8 @@ DELETE /v1/identities/:id
 ```
 
 Before offering this across products, add per-application redirect allowlists,
-rate limiting, CSRF protection, session rotation, global revocation, signing-key
-rotation, audit events and account recovery. OIDC discovery/JWKS can then expose
+rate limiting, CSRF protection, global revocation, signing-key rotation, audit
+events and account recovery. OIDC discovery/JWKS can then expose
 the service to non-Kotoba applications without coupling them to its storage.
 
 ## Implemented adapters
@@ -65,16 +68,17 @@ the service to non-Kotoba applications without coupling them to its storage.
 - `authentication.adapters.email`: expiring, attempt-limited, single-use records
   shared by email verification, OTP login, magic links and password recovery.
 
-The next product adapter should implement a small persistence port over Datomic
-for durable users/identities/memberships and KV for short-lived OAuth, email and
-session records. Provider client secrets and mail-provider credentials remain
-Worker secrets and are never arguments to this domain API.
+Durable users, identities, memberships, and session-token digests use the
+Datomic persistence port. KV/DO is limited to short-lived OAuth and email
+challenges. Provider client secrets and mail-provider credentials remain Worker
+secrets and are never arguments to this domain API.
 
 ## Persistence adapters
 
 - `authentication.adapters.datomic` supplies schema, tuple uniqueness,
-  lookup queries and atomic account/link transaction plans. The host injects
-  Datomic `db`, `q` and `transact!` functions.
+  lookup queries, atomic account/link transaction plans, and a durable session
+  store using `:identity.session/token-digest` lookup refs. The host injects
+  Datomic `db`, `q`, `pull`, and `transact!` functions.
 - `authentication.adapters.cloudflare-kv` implements the ephemeral storage
   port for sessions, OAuth transactions and email challenges. JSON keyword
   values cross this wire as strings. Production must inject a Durable Object
@@ -91,8 +95,9 @@ Worker secrets and are never arguments to this domain API.
   exchanges the authorization code.
 - `complete-profile!` applies the no-email-auto-link policy, creates or links
   durable identity state and issues an opaque session.
-- `issue-session!` stores only a SHA-256 digest; `revoke-session!` deletes that
-  digest record.
+- `issue-session!` requires an application audience and stores only a SHA-256
+  digest. `rotate-session!` durably creates the replacement before revoking the
+  old digest; `revoke-session!` invalidates the digest record.
 
 The host still owns provider HTTP and signature verification. Its callback
 sequence is `consume-oauth!` → code exchange/JWKS verification → normalized

@@ -13,12 +13,14 @@
 (defn- new-id [service prefix] (str prefix ((:random-id service))))
 
 (defn service
-  [{:keys [identity-store ephemeral-store now random-id tenant-did]
+  [{:keys [identity-store ephemeral-store session-store now random-id tenant-did]
     :as options}]
   (when-not (ports/identity-store? identity-store)
     (throw (js/Error. "identity-store required")))
   (when-not (ports/ephemeral-store? ephemeral-store)
     (throw (js/Error. "ephemeral-store required")))
+  (when (and session-store (not (ports/session-store? session-store)))
+    (throw (js/Error. "session-store must implement ISessionStore")))
   (merge {:now #(js/Date.now)
           :random-id #(str (js/crypto.randomUUID))
           :tenant-did #(str "did:web:kotobase.net:tenant:" %)}
@@ -68,7 +70,9 @@
                               consumed))))))))
 
 (defn issue-session!
-  [service {:keys [user-id tenant-id user-agent-hash ip-prefix]}]
+  [service {:keys [user-id tenant-id application user-agent-hash ip-prefix]}]
+  (when-not (and (string? application) (not= "" application))
+    (throw (js/Error. "session application audience required")))
   (let [token (crypto/random-token 32)
         session-id (new-id service "session_")
         created-at (now-ms service)
@@ -77,19 +81,23 @@
         (.then (fn [digest]
                  (let [record (identity/session-record
                                {:session-id session-id :user-id user-id :tenant-id tenant-id
-                                :token-digest digest :created-at created-at :expires-at expires-at
+                                :application application :token-digest digest
+                                :created-at created-at :expires-at expires-at
                                 :user-agent-hash user-agent-hash :ip-prefix ip-prefix})]
-                   (-> (ports/-put-once! (:ephemeral-store service)
-                                        (str "session:" digest) record session-ttl-seconds)
-                       (.then (fn [version]
-                                (when-not version (throw (js/Error. "session collision")))
+                   (-> (if-let [session-store (:session-store service)]
+                         (js/Promise.resolve
+                          (ports/-create-session! session-store record))
+                         (ports/-put-once! (:ephemeral-store service)
+                                           (str "session:" digest) record session-ttl-seconds))
+                       (.then (fn [created]
+                                (when-not created (throw (js/Error. "session collision")))
                                 {:token token :session-id session-id :expires-at expires-at
                                  :user-id user-id :tenant-id tenant-id})))))))))
 
 (defn complete-profile!
   "Apply safe linking policy to an already provider-verified profile, then
   issue a session. Hosts must not pass unverified OAuth/userinfo responses."
-  [service {:keys [profile current-user-id user-agent-hash ip-prefix]}]
+  [service {:keys [profile current-user-id application user-agent-hash ip-prefix]}]
   (let [[provider subject] (identity/identity-key profile)
         store (:identity-store service)]
     (-> (js/Promise.resolve (ports/-find-user-by-identity store provider subject))
@@ -140,9 +148,70 @@
                (.then (fn [resolved-tenant-id]
                         (-> (issue-session! service
                                             {:user-id user-id :tenant-id resolved-tenant-id
+                                             :application application
                                              :user-agent-hash user-agent-hash :ip-prefix ip-prefix})
                             (.then #(assoc % :decision decision)))))))))))
 
+(defn resolve-session!
+  "Resolve an opaque token through its digest. Durable session stores return
+  nested user/tenant entities; expired, revoked, or inactive sessions fail
+  closed. This is the backing operation for a shared /v1/session endpoint."
+  [service token]
+  (-> (crypto/sha256-base64url token)
+      (.then
+       (fn [digest]
+         (if-let [session-store (:session-store service)]
+           (js/Promise.resolve
+            (ports/-find-session-by-digest session-store digest))
+           (-> (ports/-get-value (:ephemeral-store service)
+                                 (str "session:" digest))
+               (.then #(some-> % :value))))))
+      (.then
+       (fn [record]
+         (when (and record
+                    (not (:identity.session/revoked? record))
+                    (< (now-ms service) (:identity.session/expires-at record))
+                    (not= :disabled
+                          (get-in record [:identity.session/user
+                                          :identity.user/status])))
+           record)))))
+
 (defn revoke-session! [service token]
   (-> (crypto/sha256-base64url token)
-      (.then #(ports/-delete! (:ephemeral-store service) (str "session:" %)))))
+      (.then (fn [digest]
+               (if-let [session-store (:session-store service)]
+                 (ports/-revoke-session! session-store digest (now-ms service))
+                 (ports/-delete! (:ephemeral-store service)
+                                 (str "session:" digest)))))))
+
+(defn rotate-session!
+  "Issue a replacement for the same user, tenant, and application, then revoke
+  the old opaque credential. A replacement failure leaves the old session
+  intact; a successful return guarantees that the old digest is revoked."
+  [service token {:keys [user-agent-hash ip-prefix]}]
+  (.then
+   (resolve-session! service token)
+   (fn [record]
+     (when-not record
+       (throw (js/Error. "invalid or expired session")))
+     (let [user (:identity.session/user record)
+           tenant (:identity.session/tenant record)
+           user-id (if (map? user) (:identity.user/id user) user)
+           tenant-id (if (map? tenant) (:identity.tenant/id tenant) tenant)
+           application (:identity.session/application record)
+           replacement
+           (issue-session! service
+                           {:user-id user-id
+                            :tenant-id tenant-id
+                            :application application
+                            :user-agent-hash user-agent-hash
+                            :ip-prefix ip-prefix})]
+       (.then
+        replacement
+        (fn [new-session]
+          (.then
+           (revoke-session! service token)
+           (fn [_]
+             (assoc new-session
+                    :rotated-from-session-id
+                    (:identity.session/id record))))))))))

@@ -73,9 +73,35 @@
    {:db/ident :identity.membership/user :db/valueType :db.type/ref :db/cardinality :db.cardinality/one}
    {:db/ident :identity.membership/tenant :db/valueType :db.type/ref :db/cardinality :db.cardinality/one}
    {:db/ident :identity.membership/role :db/valueType :db.type/keyword :db/cardinality :db.cardinality/one}
+   {:db/ident :identity.membership/permissions :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/many}
    {:db/ident :identity.membership/key :db/valueType :db.type/tuple
     :db/tupleAttrs [:identity.membership/user :identity.membership/tenant]
-    :db/cardinality :db.cardinality/one :db/unique :db.unique/identity}])
+    :db/cardinality :db.cardinality/one :db/unique :db.unique/identity}
+
+   {:db/ident :identity.session/id :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one :db/unique :db.unique/identity}
+   {:db/ident :identity.session/token-digest :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one :db/unique :db.unique/identity
+    :db/doc "SHA-256 digest of an opaque session token. Raw credentials never enter Datomic."}
+   {:db/ident :identity.session/user :db/valueType :db.type/ref
+    :db/cardinality :db.cardinality/one}
+   {:db/ident :identity.session/tenant :db/valueType :db.type/ref
+    :db/cardinality :db.cardinality/one}
+   {:db/ident :identity.session/application :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one}
+   {:db/ident :identity.session/created-at :db/valueType :db.type/long
+    :db/cardinality :db.cardinality/one}
+   {:db/ident :identity.session/expires-at :db/valueType :db.type/long
+    :db/cardinality :db.cardinality/one :db/index true}
+   {:db/ident :identity.session/revoked? :db/valueType :db.type/boolean
+    :db/cardinality :db.cardinality/one}
+   {:db/ident :identity.session/revoked-at :db/valueType :db.type/long
+    :db/cardinality :db.cardinality/one}
+   {:db/ident :identity.session/user-agent-hash :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one}
+   {:db/ident :identity.session/ip-prefix :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one}])
 
 (def tx-data
   "Everything, for a host installing the whole schema at once."

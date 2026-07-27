@@ -82,13 +82,14 @@
 (defn session-record
   "Server-side record. Only `token-digest`, never the opaque cookie token, is
   persisted."
-  [{:keys [session-id user-id tenant-id token-digest created-at expires-at
+  [{:keys [session-id user-id tenant-id application token-digest created-at expires-at
            user-agent-hash ip-prefix]}]
   (when-not (and (string? token-digest) (<= 32 (count token-digest)))
     (throw (ex-info "session token digest required" {})))
   {:identity.session/id session-id
    :identity.session/user user-id
    :identity.session/tenant tenant-id
+   :identity.session/application application
    :identity.session/token-digest token-digest
    :identity.session/created-at created-at
    :identity.session/expires-at expires-at

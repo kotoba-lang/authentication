@@ -27,3 +27,26 @@
     (is (= datomic/find-user-by-identity-query (ffirst @calls)))
     (is (= [:identity.user/id "u1"]
            (:identity/user (first (second @calls)))))))
+
+(deftest durable-session-plans-use-lookup-refs-and-never-raw-tokens
+  (let [calls (atom [])
+        store (datomic/session-store
+               {:db (constantly :db)
+                :pull (fn [& args] (swap! calls conj args) {:session :ok})
+                :transact! (fn [tx] (swap! calls conj tx) {:tx-data tx})})
+        record (identity/session-record
+                {:session-id "s1" :user-id "u1" :tenant-id "t1"
+                 :application "app1" :token-digest "sha256-digest-value-that-is-long-enough"
+                 :created-at 1 :expires-at 2})]
+    (ports/-create-session! store record)
+    (is (= [:identity.user/id "u1"]
+           (:identity.session/user (first (first @calls)))))
+    (is (= [:identity.tenant/id "t1"]
+           (:identity.session/tenant (first (first @calls)))))
+    (is (= {:session :ok}
+           (ports/-find-session-by-digest
+            store "sha256-digest-value-that-is-long-enough")))
+    (ports/-revoke-session! store "sha256-digest-value-that-is-long-enough" 3)
+    (is (= [:identity.session/token-digest
+            "sha256-digest-value-that-is-long-enough"]
+           (:db/id (first (last @calls)))))))
