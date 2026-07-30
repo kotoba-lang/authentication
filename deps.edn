@@ -1,11 +1,18 @@
 {:paths ["src"]
- :deps {kotoba-lang/faceid {:local/root "../faceid"}
-        kotoba-lang/touchid {:local/root "../touchid"}
-        kotoba-lang/webauthn {:local/root "../webauthn"}
-        kotoba-lang/onetime {:local/root "../onetime"}
-        kotoba-lang/oauth {:local/root "../oauth"}
-        kotoba-lang/oidc {:local/root "../oidc"}
-        kotoba-lang/saml {:local/root "../saml"}
+ :deps {kotoba-lang/faceid {:git/url "https://github.com/kotoba-lang/faceid.git"
+                                     :git/sha "6dc28282e6c24816e33c5e7d99907fdd54da90d3"}
+        kotoba-lang/touchid {:git/url "https://github.com/kotoba-lang/touchid.git"
+                                     :git/sha "26a28b949bab1d3d001119da88a78730ac447610"}
+        kotoba-lang/webauthn {:git/url "https://github.com/kotoba-lang/webauthn.git"
+                                     :git/sha "4f8a5976086ea1d4ee88805a5cae6a384b730811"}
+        kotoba-lang/onetime {:git/url "https://github.com/kotoba-lang/onetime.git"
+                                     :git/sha "fc0c2f0bc57f2b05d3dd6b2f0730dafbb77e9364"}
+        kotoba-lang/oauth {:git/url "https://github.com/kotoba-lang/oauth.git"
+                                     :git/sha "e47999a48cbc79e831c0690bac6681bda0b52785"}
+        kotoba-lang/oidc {:git/url "https://github.com/kotoba-lang/oidc.git"
+                                     :git/sha "2d3ca2b492c771b7531d8d39609b7ee582f3298b"}
+        kotoba-lang/saml {:git/url "https://github.com/kotoba-lang/saml.git"
+                                     :git/sha "8b0b4d7e1f63aa9d5537e07f532ddc0c60759040"}
         ;; real did:key CACAO verification (ADR-2607050400) -- a real,
         ;; independently-pushed repo (unlike the :local/root siblings above).
         ;; Renamed cacao -> org-chainagnostic-cacao (ADR-2607061650); the ns
