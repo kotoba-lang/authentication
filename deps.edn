@@ -1,4 +1,4 @@
-{:paths ["src"]
+{:paths ["src" "modules/email/src"]
  :deps {kotoba-lang/faceid {:local/root "../faceid"}
         kotoba-lang/touchid {:local/root "../touchid"}
         kotoba-lang/webauthn {:local/root "../webauthn"}
