@@ -3,12 +3,10 @@
                                      :git/sha "6dc28282e6c24816e33c5e7d99907fdd54da90d3"}
         kotoba-lang/touchid {:git/url "https://github.com/kotoba-lang/touchid.git"
                                      :git/sha "26a28b949bab1d3d001119da88a78730ac447610"}
-        kotoba-lang/webauthn {:git/url "https://github.com/kotoba-lang/webauthn.git"
-                                     :git/sha "4f8a5976086ea1d4ee88805a5cae6a384b730811"}
+        io.github.kotoba-lang/webauthn {:git/sha "4f8a5976086ea1d4ee88805a5cae6a384b730811"}
         kotoba-lang/onetime {:git/url "https://github.com/kotoba-lang/onetime.git"
                                      :git/sha "fc0c2f0bc57f2b05d3dd6b2f0730dafbb77e9364"}
-        kotoba-lang/oauth {:git/url "https://github.com/kotoba-lang/oauth.git"
-                                     :git/sha "e47999a48cbc79e831c0690bac6681bda0b52785"}
+        io.github.kotoba-lang/oauth {:git/sha "e47999a48cbc79e831c0690bac6681bda0b52785"}
         kotoba-lang/oidc {:git/url "https://github.com/kotoba-lang/oidc.git"
                                      :git/sha "2d3ca2b492c771b7531d8d39609b7ee582f3298b"}
         kotoba-lang/saml {:git/url "https://github.com/kotoba-lang/saml.git"
