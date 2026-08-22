@@ -12,6 +12,15 @@
     (is (= :authenticated (:authn.decision/decision out)))
     (is (= :multi-factor (:authn.decision/level out)))))
 
+(deftest email-address-possession-is-a-single-factor
+  (let [req (m/request "r-email" "user-1" {:required-level :single-factor
+                                             :purpose :login})
+        factor (m/factor "email-1" :email true
+                         {:subject "user-1" :assurance :address-possession})
+        out (c/decide req [factor])]
+    (is (= :authenticated (:authn.decision/decision out)))
+    (is (= :single-factor (:authn.decision/level out)))))
+
 (deftest biometric-factors-are-phishing-resistant
   ;; faceid/touchid are platform-biometric authenticators, just like
   ;; webauthn/passkey -- a single ok biometric factor must reach

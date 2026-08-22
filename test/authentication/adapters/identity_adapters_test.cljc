@@ -27,9 +27,28 @@
           (oauth/github-profile {:id 42 :login "a"} {:email "a@example.com" :verified true})))))
 
 (deftest email-challenge-is-expiring-and-single-use
-  (let [c (email/challenge {:id "c1" :purpose :login :email "a@example.com"
+  (let [c (email/challenge {:id "c1" :subject "user-1"
+                            :purpose :login :email "a@example.com"
                             :token-digest (apply str (repeat 64 "a"))
                             :created-at 10 :expires-at 20})]
     (is (email/challenge-usable? c 19))
     (is (not (email/challenge-usable? c 20)))
+    (is (= true (:identity.email-challenge/used? (email/consume c 15))))
     (is (= true (:identity.email-challenge/used? (first (email/consume-tx "c1" 15)))))))
+
+(deftest email-challenge-produces-a-real-authentication-factor
+  (let [digest (apply str (repeat 64 "a"))
+        c (email/challenge {:id "c1" :subject "user-1" :purpose :login
+                            :email "A@Example.com" :token-digest digest
+                            :created-at 10 :expires-at 20})
+        equal? (fn [expected presented] (= expected presented))
+        accepted (email/verify c digest 15 equal?)
+        denied (email/verify c "wrong" 15 equal?)]
+    (is (= "a@example.com" (:identity.email-challenge/email c)))
+    (is (= :email (:authn.factor/type accepted)))
+    (is (= "user-1" (:authn.factor/subject accepted)))
+    (is (= :address-possession (:authn.factor/assurance accepted)))
+    (is (:authn.factor/ok? accepted))
+    (is (not (:authn.factor/ok? denied)))
+    (is (not (:authn.factor/ok?
+              (email/verify (email/consume c 12) digest 15 equal?))))))
