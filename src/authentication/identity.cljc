@@ -4,7 +4,8 @@
   safe account-linking decisions."
   (:require [clojure.string :as str]))
 
-(def provider-types #{:email :google :github :apple :microsoft :oidc :saml :passkey :cacao})
+(def provider-types
+  #{:email :google :github :apple :microsoft :oidc :saml :passkey :cacao :siwe})
 (def session-max-age-seconds (* 30 24 60 60))
 
 (defprotocol IIdentityProvider

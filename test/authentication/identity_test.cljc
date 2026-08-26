@@ -15,6 +15,13 @@
            :email " Person@Example.COM " :email-verified? true
            :display-name "Person"}))))
 
+(deftest siwe-is-a-first-class-provider
+  (is (= [:siwe "did:pkh:eip155:1:0x1234"]
+         (identity/identity-key
+          (identity/normalized-profile
+           {:provider :siwe
+            :provider-subject "did:pkh:eip155:1:0x1234"})))))
+
 (deftest email-collision-never-auto-links
   (let [profile (identity/normalized-profile
                  {:provider :github :provider-subject "42"
