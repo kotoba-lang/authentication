@@ -31,10 +31,17 @@
   (is (= "new-key" (:id (production/active-signing-key
                            [{:id "old-key" :status :active :not-before 0 :not-after 100}
                             {:id "new-key" :status :active :not-before 50 :not-after 200}] 75))))
-  (is (nil? (get-in (production/audit-event
+  (let [audit-data (:identity.audit/data
+                    (production/audit-event
                      {:type :session/issued :actor-id "u1" :at 10
-                      :data {:token "secret" :ip-prefix "203.0.113.0/24"}})
-                    [:identity.audit/data :token])))
+                      :data {:token "secret"
+                             :siwe/signature "0x-replayable-proof"
+                             :cacao/cacao-b64 "replayable-cacao"
+                             :ip-prefix "203.0.113.0/24"}}))]
+    (is (nil? (:token audit-data)))
+    (is (nil? (:siwe/signature audit-data)))
+    (is (nil? (:cacao/cacao-b64 audit-data)))
+    (is (= "203.0.113.0/24" (:ip-prefix audit-data))))
   (is (= :allow (:decision (production/recovery-decision
                             {:verified-factors #{:passkey :recovery-code}
                              :required-factors 2 :now 100 :cooldown-until 50}))))

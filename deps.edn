@@ -30,7 +30,11 @@
         ;; not exist at the previous pin (63e9db1).
         io.github.kotoba-lang/org-chainagnostic-cacao
         {:git/url "https://github.com/kotoba-lang/org-chainagnostic-cacao.git"
-         :git/sha "dac940566e07d8ad67bff0047ada92b45dae24a0"}
+         ;; Adds the strict EIP-4361 parser plus the edge EIP-191/
+         ;; secp256k1 verifier used by authentication.adapters.siwe-edge.
+         ;; This is a fast-forward from dac9405 and keeps CACAO + SIWE on one
+         ;; coordinate rather than resolving two revisions of the same repo.
+         :git/sha "2f74d258fdbc94b8f7558843e69426c9b2e6cd97"}
         ;; The decision ledger: langchain.db is the index and the Datalog
         ;; engine, journal is the append-only history, langchain.persist is
         ;; the seam. Both are real, independently-pushed repos, so they are
