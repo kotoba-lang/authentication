@@ -4,7 +4,8 @@
 
 (def secret-keys
   #{:token :access-token :refresh-token :password :secret :pkce-verifier
-    :cacao-b64 :authorization-code})
+    :cacao-b64 :cacao/cacao-b64 :siwe-signature :siwe/signature
+    :authorization-code})
 
 (defn secure-redirect-uri? [uri]
   (and (string? uri)

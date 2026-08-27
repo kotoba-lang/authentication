@@ -3,6 +3,13 @@
 Authentication decision substrate. It combines factor results from FaceID,
 TouchID, WebAuthn, OTP, CACAO, OAuth/OIDC/SAML, or host-defined factors.
 
+Ethereum wallet sign-in is a first-class `:siwe` factor through
+`authentication.adapters.siwe-edge`. It verifies strict EIP-4361 messages and
+EIP-191 secp256k1 signatures, then authenticates the chain-bound
+`did:pkh:eip155:<chain-id>:<address>` principal. Hosts must issue and atomically
+consume the nonce; a valid signature alone is intentionally only
+`:single-factor`, not a substitute for a phishing-resistant passkey.
+
 `docs/IDENTITY-BAAS.md` describes the Clerk-shaped identity service built on
 top of it (`authentication.identity`, `authentication.identity-service`);
 `docs/PRODUCTION-HARDENING.md` describes the fail-closed contracts a host must
@@ -62,6 +69,8 @@ at the authentication layer rather than re-derived per product Worker).
 clojure -M:test                                   # JVM: models, policy, decisions
 nbb --classpath "src:test:../org-chainagnostic-cacao/src" \
     test/authentication/cacao_edge_smoke.cljs     # edge CACAO, real WebCrypto Ed25519
+nbb --classpath "src:test:../org-chainagnostic-cacao/src" \
+    test/authentication/siwe_edge_smoke.cljs      # edge SIWE, real EIP-191/secp256k1
 ```
 
 The `.cljs` smokes are not reachable from `clojure -M:test` (they are CLJS-only

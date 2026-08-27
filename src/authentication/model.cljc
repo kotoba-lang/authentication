@@ -1,7 +1,7 @@
 (ns authentication.model)
 
 (def factor-types #{:password :webauthn :passkey :faceid :touchid :totp :hotp
-                    :email :cacao :oauth :oidc :saml :recovery})
+                    :email :cacao :siwe :oauth :oidc :saml :recovery})
 (def levels #{:none :single-factor :multi-factor :phishing-resistant})
 (def decisions #{:authenticated :challenge :deny})
 
