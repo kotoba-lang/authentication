@@ -5,7 +5,14 @@
   (:require [clojure.string :as str]))
 
 (def provider-types
-  #{:email :google :github :apple :microsoft :oidc :saml :passkey :cacao :siwe})
+  "The identity providers an account row may name. `:smart-account` (2026-09-02,
+  net-kotobase/control-plane ADR-2609021400): a registered passkey signing as
+  the on-chain owner of its ERC-4337 account — a Base Account / Coinbase Smart
+  Wallet — with the subject being that account's did:pkh. Distinct from `:siwe`
+  (an externally held wallet key) because the credential is the passkey and the
+  assurance follows it."
+  #{:email :google :github :apple :microsoft :oidc :saml :passkey :cacao :siwe
+    :smart-account})
 (def session-max-age-seconds (* 30 24 60 60))
 
 (defprotocol IIdentityProvider
