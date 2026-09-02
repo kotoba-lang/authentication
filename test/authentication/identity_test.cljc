@@ -22,6 +22,18 @@
            {:provider :siwe
             :provider-subject "did:pkh:eip155:1:0x1234"})))))
 
+(deftest smart-account-is-a-first-class-provider
+  ;; A passkey signing as the owner of its Base Account (ADR-2609021400 in
+  ;; net-kotobase/control-plane). The subject is the account's did:pkh, as for
+  ;; :siwe; the provider is different because the credential is the passkey.
+  (is (= [:smart-account "did:pkh:eip155:8453:0xabcd"]
+         (identity/identity-key
+          (identity/normalized-profile
+           {:provider :smart-account
+            :provider-subject "did:pkh:eip155:8453:0xabcd"}))))
+  (is (thrown? #?(:clj clojure.lang.ExceptionInfo :cljs js/Error)
+               (identity/normalized-profile {:provider :not-a-provider :provider-subject "x"}))))
+
 (deftest email-collision-never-auto-links
   (let [profile (identity/normalized-profile
                  {:provider :github :provider-subject "42"
