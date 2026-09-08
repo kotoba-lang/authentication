@@ -1,5 +1,10 @@
 {:paths ["src"]
- :deps {kotoba-lang/faceid {:git/url "https://github.com/kotoba-lang/faceid.git"
+ :deps {
+        ;; kotoba.lang.text, not clojure.string. Pinned as an explicit floor:
+        ;; tools.deps takes the NEWEST sha it is shown, so without a floor here
+        ;; this repo silently rides whatever a sibling happens to name.
+        io.github.kotoba-lang/text {:git/sha "73bdb13ae7a3d004b44bca08be03a3191157a38f"}
+       kotoba-lang/faceid {:git/url "https://github.com/kotoba-lang/faceid.git"
                                      :git/sha "6dc28282e6c24816e33c5e7d99907fdd54da90d3"}
         kotoba-lang/touchid {:git/url "https://github.com/kotoba-lang/touchid.git"
                                      :git/sha "26a28b949bab1d3d001119da88a78730ac447610"}
