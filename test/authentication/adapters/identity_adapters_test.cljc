@@ -1,6 +1,6 @@
 (ns authentication.adapters.identity-adapters-test
   (:require [clojure.test :refer [deftest is]]
-            [clojure.string :as str]
+            [kotoba.lang.text :as str]
             [authentication.adapters.oauth :as oauth]
             [authentication.adapters.email :as email]))
 

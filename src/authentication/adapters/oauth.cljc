@@ -1,7 +1,7 @@
 (ns authentication.adapters.oauth
   "Provider configuration and authorization URL construction. Token exchange,
   JWT/JWKS verification and HTTP remain host responsibilities."
-  (:require [clojure.string :as str]
+  (:require [kotoba.lang.text :as str]
             [authentication.identity :as identity]))
 
 (def provider-catalog

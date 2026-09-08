@@ -7,7 +7,7 @@
   (:require [authentication.model :as m]
             [authentication.ports :as p]
             [cacao.core :as cacao]
-            ^:clj-kondo/ignore [clojure.string :as str]))
+            ^:clj-kondo/ignore [kotoba.lang.text :as str]))
 
 (defprotocol ICacaoVerifier
   (verify-cacao! [verifier payload opts]))

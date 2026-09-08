@@ -2,7 +2,7 @@
   "Portable CLJ/CLJS identity-domain core. Host applications own HTTP, crypto,
   mail delivery and persistence; this namespace owns normalized contracts and
   safe account-linking decisions."
-  (:require [clojure.string :as str]))
+  (:require [kotoba.lang.text :as str]))
 
 (def provider-types
   "The identity providers an account row may name. `:smart-account` (2026-09-02,
@@ -20,7 +20,7 @@
   (-normalize-profile [provider token-response]))
 
 (defn normalize-email [value]
-  (let [email (some-> value str str/trim str/lower-case)]
+  (let [email (some-> value str str/trim str/lower)]
     (when (and email (<= 3 (count email) 254)
                (re-matches #"[^\s@]+@[^\s@]+\.[^\s@]+" email))
       email)))
