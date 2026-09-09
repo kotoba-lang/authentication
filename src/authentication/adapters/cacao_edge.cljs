@@ -39,7 +39,7 @@
   (:require [authentication.model :as m]
             [authentication.ports :as p]
             [cacao.edge.verify :as edge]
-            [clojure.string :as str]))
+            [kotoba.lang.text :as str]))
 
 (defn- resources-seq [payload]
   (let [rs (some-> payload (aget "resources"))]
