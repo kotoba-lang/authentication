@@ -1,8 +1,8 @@
 ;; nbb smoke for the edge CACAO factor verifier — the Worker-side production
-;; auth path, which `clojure -M:test` cannot reach (cacao.edge.* is CLJS-only:
+;; auth path, which `kbb -M:test` cannot reach (cacao.edge.* is CLJS-only:
 ;; js/crypto.subtle, js/Uint8Array, js/btoa).
 ;;
-;;   nbb --classpath "src:test:<cacao>/src" test/authentication/cacao_edge_smoke.cljk
+;;   kbb --backend sci --classpath "src:test:<cacao>/src" test/authentication/cacao_edge_smoke.cljk
 ;;
 ;; where <cacao> is a checkout of kotoba-lang/org-chainagnostic-cacao. Requires
 ;; Node >= 20 (Ed25519 in WebCrypto). Exits nonzero on any failure.

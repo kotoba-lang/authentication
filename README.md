@@ -66,12 +66,12 @@ at the authentication layer rather than re-derived per product Worker).
 ## Tests
 
 ```bash
-clojure -M:test                                   # JVM: models, policy, decisions
-nbb --classpath "src:test:../org-chainagnostic-cacao/src" \
+kbb -M:test                                   # JVM: models, policy, decisions
+kbb --backend sci --classpath "src:test:../org-chainagnostic-cacao/src" \
     test/authentication/cacao_edge_smoke.cljk     # edge CACAO, real WebCrypto Ed25519
-nbb --classpath "src:test:../org-chainagnostic-cacao/src" \
+kbb --backend sci --classpath "src:test:../org-chainagnostic-cacao/src" \
     test/authentication/siwe_edge_smoke.cljk      # edge SIWE, real EIP-191/secp256k1
 ```
 
-The `.cljs` smokes are not reachable from `clojure -M:test` (they are CLJS-only
+The `.cljs` smokes are not reachable from `kbb -M:test` (they are CLJS-only
 by construction) and are not yet wired into CI.
