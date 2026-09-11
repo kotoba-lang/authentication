@@ -68,9 +68,9 @@ at the authentication layer rather than re-derived per product Worker).
 ```bash
 clojure -M:test                                   # JVM: models, policy, decisions
 nbb --classpath "src:test:../org-chainagnostic-cacao/src" \
-    test/authentication/cacao_edge_smoke.cljs     # edge CACAO, real WebCrypto Ed25519
+    test/authentication/cacao_edge_smoke.cljk     # edge CACAO, real WebCrypto Ed25519
 nbb --classpath "src:test:../org-chainagnostic-cacao/src" \
-    test/authentication/siwe_edge_smoke.cljs      # edge SIWE, real EIP-191/secp256k1
+    test/authentication/siwe_edge_smoke.cljk      # edge SIWE, real EIP-191/secp256k1
 ```
 
 The `.cljs` smokes are not reachable from `clojure -M:test` (they are CLJS-only

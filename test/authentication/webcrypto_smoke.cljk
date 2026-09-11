@@ -1,7 +1,7 @@
 ;; nbb smoke for authentication.adapters.webcrypto. Not reachable from
 ;; `clojure -M:test` -- this namespace is CLJS-only (js/crypto, js/btoa).
 ;;
-;;   nbb --classpath "src:test" test/authentication/webcrypto_smoke.cljs
+;;   nbb --classpath "src:test" test/authentication/webcrypto_smoke.cljk
 ;;
 ;; The base64url checks are not decoration. A `+` or `/` in a value documented
 ;; as base64url means it is NOT safe to drop into a URL or a cookie unencoded,
