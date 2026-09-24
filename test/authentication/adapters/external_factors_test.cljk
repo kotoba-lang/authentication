@@ -16,7 +16,7 @@
             [touchid.ports :as touchid-ports]
             [webauthn.model :as webauthn-model]
             [webauthn.ports :as webauthn-ports]
-            [clojure.test :refer [deftest is]]))
+            [kotoba.test :refer [deftest is]]))
 
 (deftest verifies-faceid-factor
   (let [req (m/factor-request "face-r1" :faceid {:subject "did:web:example.com:alice"})

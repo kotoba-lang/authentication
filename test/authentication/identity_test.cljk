@@ -1,5 +1,5 @@
 (ns authentication.identity-test
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.test :refer [deftest is testing]]
             [authentication.identity :as identity]))
 
 (deftest provider-profiles-are-normalized

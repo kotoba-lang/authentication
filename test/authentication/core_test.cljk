@@ -1,5 +1,5 @@
 (ns authentication.core-test
-  (:require [clojure.test :refer [deftest is]]
+  (:require [kotoba.test :refer [deftest is]]
             [authentication.core :as c]
             [authentication.model :as m]
             [authentication.ports :as p]))
