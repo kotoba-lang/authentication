@@ -1,5 +1,5 @@
 (ns authentication.adapters.datomic-test
-  (:require [clojure.test :refer [deftest is]]
+  (:require [kotoba.test :refer [deftest is]]
             [authentication.adapters.datomic :as datomic]
             [authentication.identity :as identity]
             [authentication.identity-ports :as ports]))

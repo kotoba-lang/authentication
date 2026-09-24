@@ -2,7 +2,7 @@
   (:require [authentication.adapters.factor :as a]
             [authentication.core :as c]
             [authentication.model :as m]
-            [clojure.test :refer [deftest is]]))
+            [kotoba.test :refer [deftest is]]))
 
 (deftest verifies-factor-through-factor-client
   (let [calls (atom [])

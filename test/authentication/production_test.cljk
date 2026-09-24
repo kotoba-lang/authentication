@@ -1,6 +1,6 @@
 (ns authentication.production-test
   (:require [authentication.production :as production]
-            [clojure.test :refer [deftest is testing]]))
+            [kotoba.test :refer [deftest is testing]]))
 
 (deftest redirect-allowlists-are-exact
   (let [app (production/application

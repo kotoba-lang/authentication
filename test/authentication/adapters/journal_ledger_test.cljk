@@ -2,7 +2,7 @@
   (:require [authentication.adapters.decision-ledger :as ledger]
             [authentication.adapters.journal-ledger :as jl]
             [authentication.model :as m]
-            [clojure.test :refer [deftest is testing]]
+            [kotoba.test :refer [deftest is testing]]
             [journal.fs :as journal.fs]
             [langchain.db :as db]))
 

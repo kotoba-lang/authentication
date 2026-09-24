@@ -1,7 +1,7 @@
 (ns authentication.adapters.step-up-test
   (:require [authentication.adapters.step-up :as step-up]
             [authentication.model :as m]
-            [clojure.test :refer [deftest is]]))
+            [kotoba.test :refer [deftest is]]))
 
 (deftest plans-multi-factor-step-up
   (let [req (m/request "auth1" "did:web:example.com:alice"

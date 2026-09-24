@@ -1,5 +1,5 @@
 (ns authentication.adapters.cacao-test
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.test :refer [deftest is testing]]
             [authentication.adapters.cacao :as cacao]
             [authentication.core :as c]
             [authentication.model :as m]
