@@ -12,7 +12,13 @@
    :github {:authorization-endpoint "https://github.com/login/oauth/authorize"
             :token-endpoint "https://github.com/login/oauth/access_token"
             :scopes ["read:user" "user:email"]
-            :oidc? false}})
+            :oidc? false}
+   ;; X OAuth 2.0 user context. `users.email` is what returns confirmed_email;
+   ;; tweet.read is required by /2/users/me alongside users.read.
+   :x {:authorization-endpoint "https://twitter.com/i/oauth2/authorize"
+       :token-endpoint "https://api.twitter.com/2/oauth2/token"
+       :scopes ["users.read" "tweet.read" "users.email"]
+       :oidc? false}})
 
 (defn- encode-component [value]
   #?(:cljs (js/encodeURIComponent (str value))
@@ -51,3 +57,14 @@
     :email (:email primary-email) :email-verified? (:verified primary-email)
     :display-name (or (:name user) (:login user)) :avatar-url (:avatar_url user)
     :claims {:login (:login user)}}))
+
+(defn x-profile
+  "X user object from /2/users/me. confirmed_email is present only when the
+  app was granted users.email; the username remains the contact handle."
+  [user]
+  (let [email (:confirmed_email user)]
+    (identity/normalized-profile
+     {:provider :x :provider-subject (str (:id user))
+      :email email :email-verified? (boolean (seq email))
+      :display-name (or (:name user) (:username user))
+      :claims {:username (:username user)}})))

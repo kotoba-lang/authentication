@@ -24,7 +24,13 @@
           (oauth/google-profile {:sub "123" :email "A@Example.com" :email_verified true}))))
   (is (= [:github "42"]
          ((juxt :identity/provider :identity/provider-subject)
-          (oauth/github-profile {:id 42 :login "a"} {:email "a@example.com" :verified true})))))
+          (oauth/github-profile {:id 42 :login "a"} {:email "a@example.com" :verified true}))))
+  (is (= [:x "99"]
+         ((juxt :identity/provider :identity/provider-subject)
+          (oauth/x-profile {:id "99" :username "ada" :name "Ada" :confirmed_email "ada@example.com"}))))
+  (is (= "ada@example.com"
+         (:identity/email
+          (oauth/x-profile {:id "99" :username "ada" :confirmed_email "Ada@Example.com"}))))))
 
 (deftest email-challenge-is-expiring-and-single-use
   (let [c (email/challenge {:id "c1" :subject "user-1"
