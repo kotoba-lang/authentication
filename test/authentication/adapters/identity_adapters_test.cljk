@@ -30,7 +30,7 @@
           (oauth/x-profile {:id "99" :username "ada" :name "Ada" :confirmed_email "ada@example.com"}))))
   (is (= "ada@example.com"
          (:identity/email
-          (oauth/x-profile {:id "99" :username "ada" :confirmed_email "Ada@Example.com"}))))))
+          (oauth/x-profile {:id "99" :username "ada" :confirmed_email "Ada@Example.com"})))))
 
 (deftest email-challenge-is-expiring-and-single-use
   (let [c (email/challenge {:id "c1" :subject "user-1"
